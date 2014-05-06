@@ -4,8 +4,9 @@
 
   var ngTap = angular.module('ngTap', []);
 
-  ngTap.directive('ngTap', [ '$location', '$parse', '$window',
-    function($location, $parse, $window) {
+  ngTap.directive('ngTap', [ '$location', '$parse', '$window', 'touchData',
+    function($location, $parse, $window, touchData) {
+    console.log('blah');
       var isTouchDevice,
           clsActive = 'ng-tap-active',
           setAction;
@@ -36,16 +37,23 @@
 
       return function(scope, element, attrs) {
         if (isTouchDevice) {
-          var tapping = false;
-          element.on('touchstart', function() {
+          var touch = touchData.init();
+
+          element.on('touchstart', function(e) {
             element.addClass(clsActive);
-            tapping = true;
+            touch.start(e);
           });
-          element.on('touchmove', function() { tapping = false; });
+
+          element.on('touchmove', function(e) {
+            touch.isTouchMove(e);
+          });
+
           element.on('touchend', function(e) {
-            e.preventDefault();
             element.removeClass(clsActive);
-            tapping && setAction(scope, attrs, e);
+            if(touch.isSingleTap) {
+              setAction(scope, attrs, e);
+            }
+            touch.end();
           });
         } else {
           element.on('mousedown', function() {
